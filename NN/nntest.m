@@ -1,4 +1,4 @@
-function [er, bad] = nntest(nn, x, y)
+function [er, bad, labels] = nntest(nn, x, y)
     labels = nnpredict(nn, x);
     [~, expected] = max(y,[],2);
     bad = find(labels ~= expected);    

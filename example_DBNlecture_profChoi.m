@@ -47,7 +47,20 @@ nn.activation_function = 'sigm';
 opts.numepochs =  3;
 opts.batchsize = 100;
 nn = nntrain(nn, train_x, train_y, opts);
-[er, bad] = nntest(nn, test_x, test_y);
+[er, bad, est_label] = nntest(nn, test_x, test_y);
+
+% --- Plot 10 wrong cases
+figure(2)
+for i =1:10
+    badIx = bad(i);
+    label = find(test_y(badIx,:)==1)-1;
+    h = rot90(reshape(test_x(badIx,:),28,28));
+    subplot(2,5,i)
+    pcolor(h)
+    axis tight
+    box on
+    title(sprintf('Est: %d Label: %d',est_label(badIx)-1, label))
+end
 
 
 time_run = toc;
