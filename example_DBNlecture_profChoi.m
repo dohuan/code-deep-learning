@@ -11,6 +11,16 @@ test_x  = double(test_x)  / 255;
 train_y = double(train_y);
 test_y  = double(test_y);
 
+% --- Standardize input for Gaussian distribution of visible units
+% for i=1:size(train_x,1)
+%     train_x(i,:) = (train_x(i,:)-mean(train_x(i,:)))./std(train_x(i,:));
+% end
+% 
+% for i=1:size(test_x,1)
+%     test_x(i,:) = (test_x(i,:)-mean(test_x(i,:)))./std(test_x(i,:));
+% end
+
+
 %%  ex1 train a 100 hidden unit RBM and visualize its weights
 
 % --- 1 layer of hidden unit with size 100
@@ -22,6 +32,7 @@ opts.numepochs =   1;
 opts.batchsize = 100;
 opts.momentum  =   0;
 opts.alpha     =   1;
+opts.visibleDist   = 'bino'; % 'Gauss' or 'binomial'
 dbn = dbnsetup(dbn, train_x, opts);
 dbn = dbntrain(dbn, train_x, opts);
 figure(1)
