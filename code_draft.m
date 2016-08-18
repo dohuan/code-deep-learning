@@ -13,3 +13,66 @@ for i=1:length(dcmfiles)
 	data = [data; reshape(img,1,[])];
 end
 save('data','data');
+
+
+% --- Check stats of scan times
+time = [];
+for i=1:14
+	if (length(Time{i})>2)
+		time = [time; Time{i}(end-2:end)'];
+	end
+end
+time = time.*30;
+
+
+% --- Generate UNIFORMLY distributed parameters k, sigma, and mu
+% run ONLY once then distribute value to different PCs
+range.k = [0.196 0.287];
+range.sigma = [1.72 2.70];
+range.mu = [8.77 9.71];
+ran_k = range.k(1)+(range.k(2)-range.k(1)).*rand(8,1);
+ran_sigma = range.sigma(1)+(range.sigma(2)-range.sigma(1)).*rand(8,1);
+ran_mu = range.mu(1)+(range.mu(2)-range.mu(1)).*rand(8,1);
+[k sig mu] = meshgrid(ran_k,ran_sigma,ran_mu);
+param = [k(:) sig(:) mu(:)];
+
+
+
+% --- Merge GR data together
+% 1. load data from file
+% 2. subsample by a time period of 12 months
+% NOTE: save data as unit8 next time! But check again: uint is for unsigned integer
+fileList = dir('./data/GR_H_081716/*.mat');
+data = [];
+for i=1:length(fileList)
+	loadFile = ['./data/GR_H_081716/' fileList(i).name];
+	fprintf(['Loading data from: ' loadFile '\n']);
+	load(loadFile);
+	ran_ix = randi([1,size(result,1)-216],100,1); % 216 = 12(months)*30(days)/5(days)
+	for j=1:length(ran_ix)
+		tmp = [];
+		for k=1:4
+			ix = ran_ix(j)+72*(k-1); % 72 = 12(months)*30(days)/5(days)
+			tmp = [tmp, uint8(result(ix,:))];
+		end
+		data = [data;tmp];
+	end
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
