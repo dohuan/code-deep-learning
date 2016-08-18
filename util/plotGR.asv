@@ -1,0 +1,10 @@
+function h = plotGR(W)
+% W: [hidden/input units]x[visible/output units]
+[hid_size,vi_size] = size(W);
+s =  sqrt(hid_size);
+if (s==floor(s))
+    
+else 
+    fprintf('Hidden units are not square\n');
+end
+end

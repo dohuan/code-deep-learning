@@ -39,7 +39,6 @@ figure(1)
 for i=1:length(dbn.sizes)-1
     subplot(1,length(dbn.sizes)-1,i)
     a = visualize(dbn.rbm{i}.W');   %  Visualize the RBM weights
-    
     imagesc(a, [min(a(:)) max(a(:))]);
     axis tight
     colormap gray

@@ -41,21 +41,27 @@ param = [k(:) sig(:) mu(:)];
 % --- Merge GR data together
 % 1. load data from file
 % 2. subsample by a time period of 12 months
-% NOTE: save data as unit8 next time! But check again: uint is for unsigned integer
+% NOTE: save data as SINGLE (4 bytes) to save space
 fileList = dir('./data/GR_H_081716/*.mat');
-data = [];
+data.train = [];
+data.test  = [];
 for i=1:length(fileList)
 	loadFile = ['./data/GR_H_081716/' fileList(i).name];
 	fprintf(['Loading data from: ' loadFile '\n']);
 	load(loadFile);
-	ran_ix = randi([1,size(result,1)-216],100,1); % 216 = 12(months)*30(days)/5(days)
+	ran_ix = randi([1,size(result,1)-288],100,1); % 288 = 12(months)*4(scans)*30(days)/5(days)
 	for j=1:length(ran_ix)
-		tmp = [];
-		for k=1:4
+		tmp_train = [];
+		for k=1:5
 			ix = ran_ix(j)+72*(k-1); % 72 = 12(months)*30(days)/5(days)
-			tmp = [tmp, uint8(result(ix,:))];
+			if k~=5
+				tmp_train = [tmp_train, single(result(ix,:))];
+			else
+				tmp_test = single(result(ix,:));
+			end
 		end
-		data = [data;tmp];
+		data.train = [data.train;tmp_train];
+		data.test = [data.test; tmp_test];
 	end
 end
 
