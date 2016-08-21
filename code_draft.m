@@ -43,29 +43,46 @@ param = [k(:) sig(:) mu(:)];
 % 2. subsample by a time period of 12 months
 % NOTE: save data as SINGLE (4 bytes) to save space
 fileList = dir('./data/GR_H_081716/*.mat');
-data.train = [];
-data.test  = [];
+data.train_x = [];
+data.train_y  = [];
 for i=1:length(fileList)
 	loadFile = ['./data/GR_H_081716/' fileList(i).name];
 	fprintf(['Loading data from: ' loadFile '\n']);
 	load(loadFile);
 	ran_ix = randi([1,size(result,1)-288],100,1); % 288 = 12(months)*4(scans)*30(days)/5(days)
 	for j=1:length(ran_ix)
-		tmp_train = [];
+		tmp_x = [];
 		for k=1:5
 			ix = ran_ix(j)+72*(k-1); % 72 = 12(months)*30(days)/5(days)
 			if k~=5
-				tmp_train = [tmp_train, single(result(ix,:))];
+				tmp_x = [tmp_x, single(result(ix,:))];
 			else
-				tmp_test = single(result(ix,:));
+				tmp_y = single(result(ix,:));
 			end
 		end
-		data.train = [data.train;tmp_train];
-		data.test = [data.test; tmp_test];
+		data.train_x = [data.train_x;tmp_x];
+		data.train_y = [data.train_y; tmp_y];
 	end
 end
 
 
+
+
+
+
+
+
+% --- Test polyfit with patient H data
+% Assume already load patient H data
+index = 4;
+p = polyfit(H(index).pos, H(index).maxd,7);
+x = linspace(min(H(index).pos), max(H(index).pos), 221);
+y = polyval(p,x);
+figure(1)
+hold on
+plot(H(index).pos, H(index).maxd);
+plot(x,y);
+hold off
 
 
 
