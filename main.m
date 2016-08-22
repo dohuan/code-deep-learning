@@ -3,7 +3,7 @@ clear
 clc
 set(0,'defaultfigurecolor',[1 1 1])
 %%
-tic
+tStart = tic;
 load ./data/dataGR-full;
 
 for i=1:size(data.train_x,1)
@@ -38,7 +38,7 @@ test_x = test_x./(max(test_x));
 % --- 1 layer of hidden unit with size 100
 %dbn.sizes = 100;
 % --- 2 layers of hidden unit with size 100
-dbn.sizes = [100 100 100];
+dbn.sizes = [100 100];
 
 opts.numepochs =   1;
 opts.batchsize = 100;
@@ -65,7 +65,7 @@ dbn = dbntrain(dbn, train_x, opts);
 nn = dbnunfoldtonn(dbn, size(train_y,2));
 nn.activation_function = 'sigm';
 
-% --- train nn
+% --- train nn USING real scan (for better fine-tuning)
 opts.numepochs =  1;
 opts.batchsize = 100;
 nn = nntrain(nn, train_x, train_y, opts);
@@ -78,5 +78,5 @@ plot(test_y,'LineWidth',2)
 hold off
 legend('estimated','true')
 
-time_run = toc;
+time_run = toc(tStart);
 fprintf('\nRun time: %.2f minutes\n',time_run/60);

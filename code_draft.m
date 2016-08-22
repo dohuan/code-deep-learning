@@ -45,16 +45,19 @@ param = [k(:) sig(:) mu(:)];
 fileList = dir('./data/GR_H_081716/*.mat');
 data.train_x = [];
 data.train_y  = [];
+fnum = 4; % take [fnum] scans in the past as features, predict the scan [fnum+1]-th
 for i=1:length(fileList)
 	loadFile = ['./data/GR_H_081716/' fileList(i).name];
 	fprintf(['Loading data from: ' loadFile '\n']);
 	load(loadFile);
-	ran_ix = randi([1,size(result,1)-288],100,1); % 288 = 12(months)*4(scans)*30(days)/5(days)
+	t_offset = 12*(fnum+1)*30/5; % t_offset = 12(months)*(fnum+1)(scans)*30(days)/5(days)
+	ran_ix = randi([1,size(result,1)-t_offset],100,1); 
+	t_step = 12(months)*30(days)/5(days); % =72
 	for j=1:length(ran_ix)
 		tmp_x = [];
-		for k=1:5
-			ix = ran_ix(j)+72*(k-1); % 72 = 12(months)*30(days)/5(days)
-			if k~=5
+		for k=1:fnum+1
+			ix = ran_ix(j)+t_step*(k-1);
+			if k~=fnum+1
 				tmp_x = [tmp_x, single(result(ix,:))];
 			else
 				tmp_y = single(result(ix,:));
