@@ -52,15 +52,22 @@ for i=1:length(fileList)
 	load(loadFile);
 	t_offset = 12*(fnum+1)*30/5; % t_offset = 12(months)*(fnum+1)(scans)*30(days)/5(days)
 	ran_ix = randi([1,size(result,1)-t_offset],100,1); 
-	t_step = 12(months)*30(days)/5(days); % =72
+	t_step = 12*30/5; % =72
 	for j=1:length(ran_ix)
 		tmp_x = [];
+		stoken = (rand()>.7); % shift token
 		for k=1:fnum+1
 			ix = ran_ix(j)+t_step*(k-1);
-			if k~=fnum+1
-				tmp_x = [tmp_x, single(result(ix,:))];
+			if (stoken ==1 )
+				result_tmp = (curve_shifter(single(result(ix,:)'), .7))';
 			else
-				tmp_y = single(result(ix,:));
+				result_tmp = single(result(ix,:));
+			end
+			if k~=fnum+1
+				tmp_x = [tmp_x, result_tmp];
+			else
+				
+				tmp_y = result_tmp;
 			end
 		end
 		data.train_x = [data.train_x;tmp_x];

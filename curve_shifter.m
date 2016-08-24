@@ -3,7 +3,7 @@ function out = curve_shifter(x, ratio)
 %--- find axial location where ratio happens
 %--- x: nx1 vector
 endvalue = x(end);
-cutvalue = max(x(:))*ratio;
+cutvalue = (max(x(:))-min(x(:)))*ratio + min(x(:));
 distance = (x-cutvalue).^2;
 [~,ix] = sort(distance,'ascend');
 cutix = min(ix(1:2));
