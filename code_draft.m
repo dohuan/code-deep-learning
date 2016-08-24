@@ -45,7 +45,7 @@ param = [k(:) sig(:) mu(:)];
 fileList = dir('./data/GR_H_081716/*.mat');
 data.train_x = [];
 data.train_y  = [];
-fnum = 4; % take [fnum] scans in the past as features, predict the scan [fnum+1]-th
+fnum = 3; % take [fnum] scans in the past as features, predict the scan [fnum+1]-th
 for i=1:length(fileList)
 	loadFile = ['./data/GR_H_081716/' fileList(i).name];
 	fprintf(['Loading data from: ' loadFile '\n']);
@@ -67,6 +67,9 @@ for i=1:length(fileList)
 		data.train_y = [data.train_y; tmp_y];
 	end
 end
+
+
+
 
 
 
