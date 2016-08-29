@@ -74,10 +74,67 @@ for i=1:length(fileList)
 		data.train_y = [data.train_y; tmp_y];
 	end
 end
+data.fnum = fnum;
 
 
 
 
+% --- Load REAL data 
+fileList = dir('./data/real_scans/*.mat');
+dataout.ft_x   = []; % ft = 'fine tune'
+dataout.ft_y   = [];
+dataout.test_x = [];
+dataout.test_y = [];
+fnum = 3; % take [fnum] scans in the past as features, predict the scan [fnum+1]-th
+% NOTE: make sure fnum is the SAME as GR data
+dataout.fnum = fnum;
+for i = 1:length(fileList)
+	loadFile = ['./data/real_scans/' fileList(i).name];
+	load(loadFile);
+	if (length(data)<fnum+1)
+		fprintf('Discarded: insufficient data\n');
+	else
+		grp_num = (length(data)-(fnum+1)+1);
+		fprintf('Possible data size: %d\n',grp_num);
+		grp_ix = 1:length(data);
+		grp_ix = grp_ix';
+		for j=1:grp_num
+			ix_tmp = circshift(grp_ix,-j+1);
+			data_grp = data(ix_tmp(1:fnum+1));
+			tmp_x = [];
+			for k=1:length(data_grp)
+				p = polyfit(data_grp(k).pos, data_grp(k).maxd,7);
+				x = linspace(min(data_grp(k).pos), max(data_grp(k).pos), 221);
+				tmp = polyval(p,x);
+				if (k~=length(data_grp))
+					tmp_x = [tmp_x, tmp];
+				else
+					tmp_y = tmp;
+				end
+				
+			end
+			tmp_x = tmp_x./max(tmp_x);
+			tmp_y = tmp_y./max(tmp_y);
+			if(j~=grp_num)
+				dataout.ft_x = [dataout.ft_x; tmp_x];
+				dataout.ft_y = [dataout.ft_y; tmp_y];
+			else
+				dataout.test_x = [dataout.test_x; tmp_x];
+				dataout.test_y = [dataout.test_y; tmp_y];
+			end
+		end
+	end
+end
+
+
+
+A = 1:10;
+A = A';
+B(:,1) = A;
+for i=2:length(A)
+	%B(:,i) = circshift(B(:,i-1),-1);
+	B(:,i) = circshift(A,-i+1);
+end
 
 
 
