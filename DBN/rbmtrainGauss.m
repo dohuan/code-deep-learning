@@ -5,7 +5,7 @@ function rbm = rbmtrainGauss(rbm, x, opts)
     numbatches = m / opts.batchsize;
     
     assert(rem(numbatches, 1) == 0, 'numbatches not integer');
-
+    err_track = [];
     for i = 1 : opts.numepochs
         kk = randperm(m);
         err = 0;
@@ -35,6 +35,7 @@ function rbm = rbmtrainGauss(rbm, x, opts)
             rbm.c = rbm.c + rbm.vc;
 
             err = err + sum(sum((v1 - v2) .^ 2)) / opts.batchsize;
+            err_track = [err_track;err];
         end
         
         disp(['epoch ' num2str(i) '/' num2str(opts.numepochs)  '. Average reconstruction error is: ' num2str(err / numbatches)]);

@@ -41,13 +41,13 @@ load ./data/data_train
 % --- 1 layer of hidden unit with size 100
 %dbn.sizes = 100;
 % --- 2 layers of hidden unit with size 100
-dbn.sizes = [225 100];
+dbn.sizes = [100 100];
 
-opts.numepochs =   5;
+opts.numepochs =   3;
 opts.batchsize = 100;
 opts.momentum  =   0;
 opts.alpha     =   1;
-opts.visibleDist   = 'bino'; % 'Gauss' or 'binomial'
+opts.visibleDist   = 'Gauss'; % 'Gauss' or 'binomial'
 dbn = dbnsetup(dbn, train_x, opts);
 dbn = dbntrain(dbn, train_x, opts);
 
