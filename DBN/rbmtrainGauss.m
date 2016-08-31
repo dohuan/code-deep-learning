@@ -24,7 +24,7 @@ function rbm = rbmtrainGauss(rbm, x, opts)
             c1 = h1' * v1;
             c2 = h2' * v2;
 
-            rbm.vW = rbm.momentum * rbm.vW + rbm.alpha * (c1 - c2)     / opts.batchsize;
+            rbm.vW = rbm.momentum * rbm.vW + rbm.alpha * (c1 - c2)/opts.batchsize;
             %rbm.vb = rbm.momentum * rbm.vb + rbm.alpha * sum(v1 - v2)' / opts.batchsize;
             rbm.va = rbm.momentum*rbm.va + rbm.alpha*sum(v2 - v1)' / opts.batchsize;
             rbm.vc = rbm.momentum * rbm.vc + rbm.alpha * sum(h1 - h2)' / opts.batchsize;
