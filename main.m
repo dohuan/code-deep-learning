@@ -46,7 +46,7 @@ dbn.sizes = [100 100];
 opts.numepochs =   3;
 opts.batchsize = 100;
 opts.momentum  =   0;
-opts.alpha     =   .001;   % alpha: learn rate
+opts.alpha     =   .0001;   % alpha: learn rate
 opts.visibleDist   = 'Gauss'; % 'Gauss' or 'binomial'
 dbn = dbnsetup(dbn, train_x, opts);
 dbn = dbntrain(dbn, train_x, opts);
@@ -69,9 +69,9 @@ nn = dbnunfoldtonn(dbn, size(train_y,2));
 nn.activation_function = 'sigm';
 
 % --- train NN USING GR data
-% opts.numepochs =  1;
-% opts.batchsize = 100;
-% nn = nntrain(nn, train_x, train_y, opts);
+opts.numepochs =  1;
+opts.batchsize = 100;
+nn = nntrain(nn, train_x, train_y, opts);
 
 % --- train NN USING REAL data (for better fine tuning)
 load ./data/dataREAL
@@ -84,7 +84,6 @@ est = nnpredict(nn,data.test_x);
 figure(1)
 for i=1:size(data.test_y,1)
     subplot(2,4,i)
-    [~, ~, est(i,:)] = nntest(nn, data.test_x(i,:), data.test_y(i,:));
     hold on
     plot(est(i,:),'LineWidth',2)
     plot(data.test_y(i,:),'LineWidth',2)
