@@ -125,7 +125,8 @@ for i = 1:length(fileList)
 		end
 	end
 end
-
+clear data
+data = dataout;
 
 
 A = 1:10;
@@ -155,8 +156,13 @@ plot(x,y);
 hold off
 
 
-% --- Fix patient K data
-
+% --- Fix patient K data NaN error
+for i=1:length(data)
+	h = isnan(data(i).maxd);
+	ix = find(h==1);
+	data(i).maxd(ix) = [];
+	data(i).pos(ix) = [];
+end
 
 
 

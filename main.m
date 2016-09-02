@@ -4,6 +4,13 @@ clc
 set(0,'defaultfigurecolor',[1 1 1])
 %%
 tStart = tic;
+patientID{1} = 'G';
+patientID{2} = 'H';
+patientID{3} = 'J';
+patientID{4} = 'K';
+patientID{5} = 'P11';
+patientID{6} = 'P12';
+patientID{7} = 'P13';
 
 % load ./data/dataGR-augmented;
 % fnum = 3;
@@ -17,24 +24,6 @@ tStart = tic;
 % clear data
 
 load ./data/data_train
-
-% % --- Load real data
-% load ./data/BC_20160608/H.mat
-% test_x = [];
-% test_y = [];
-% for i=length(H)-fnum:1:length(H)
-%     p = polyfit(H(i).pos, H(i).maxd,7);
-%     x = linspace(min(H(i).pos), max(H(i).pos), size(train_y,2));
-%     tmp = polyval(p,x);
-%     if (i~=length(H))
-%         test_x = [test_x, tmp];
-%     else
-%         test_y = tmp./max(tmp);
-%     end
-% end
-% test_x = test_x./(max(test_x));
-
-
 
 %%  ex1 train a 100 hidden unit RBM and visualize its weights
 
@@ -89,6 +78,7 @@ for i=1:size(data.test_y,1)
     plot(data.test_y(i,:),'LineWidth',2)
     hold off
     legend('estimated','true')
+    title(patientID{i})
 end
 
 
