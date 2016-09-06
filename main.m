@@ -63,7 +63,7 @@ opts.batchsize = 100;
 nn = nntrain(nn, train_x, train_y, opts);
 
 % --- train NN USING REAL data (for better fine tuning)
-load ./data/dataREAL
+load ./data/dataREAL_normalized_uni_max
 opts.numepochs =  1;
 opts.batchsize = 1;
 nn = nntrain(nn, data.ft_x, data.ft_y, opts);
@@ -74,8 +74,8 @@ figure(1)
 for i=1:size(data.test_y,1)
     subplot(2,4,i)
     hold on
-    plot(est(i,:),'LineWidth',2)
-    plot(data.test_y(i,:),'LineWidth',2)
+    plot(est(i,:).*uni_max,'LineWidth',2)
+    plot(data.test_y(i,:).*uni_max,'LineWidth',2)
     hold off
     legend('estimated','true')
     title(patientID{i})

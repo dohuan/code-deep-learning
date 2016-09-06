@@ -79,7 +79,7 @@ data.fnum = fnum;
 
 
 
-% --- Load REAL data 
+% --- Load and NORMALIZED REAL data 
 fileList = dir('./data/real_scans/*.mat');
 dataout.ft_x   = []; % ft = 'fine tune'
 dataout.ft_y   = [];
@@ -113,8 +113,9 @@ for i = 1:length(fileList)
 				end
 				
 			end
-			tmp_x = tmp_x./max(tmp_x);
-			tmp_y = tmp_y./max(tmp_y);
+			% --- Un-comment following two lines if normalized
+			%tmp_x = tmp_x./max(tmp_x);
+			%tmp_y = tmp_y./max(tmp_y);
 			if(j~=grp_num)
 				dataout.ft_x = [dataout.ft_x; tmp_x];
 				dataout.ft_y = [dataout.ft_y; tmp_y];
@@ -165,11 +166,39 @@ for i=1:length(data)
 end
 
 
+% --- Find out the universal maximum diameter
+load ./data/dataGR-augmented
+uni_max = 0;
+for i=1:size(data.train_y,1)
+	if (uni_max<max(data.train_y(i,:)))
+		uni_max = max(data.train_y(i,:));
+	end
+end
+fprintf('Max dia of GR data: %.3f\n',uni_max);
+load ./data/dataREAL_unnormalized
+uni_max = 0;
+for i=1:size(data.test_y,1)
+	if (uni_max<max(data.test_y(i,:)))
+		uni_max = max(data.test_y(i,:));
+	end
+end
+fprintf('Max dia of REAL data: %.3f\n',uni_max);
 
 
 
+% --- Scale all data by the universal max dia (found by the code above)
+uni_max = 7.1;
+load ./data/dataGR-augmented
+train_x = data.train_x./uni_max;
+train_y = data.train_y./uni_max;
+save('./data/data_train','train_x','train_y','uni_max');
 
-
+load ./data/dataREAL_unnormalized
+data.ft_x = data.ft_x./uni_max;
+data.ft_y = data.ft_y./uni_max;
+data.test_x = data.test_x./uni_max;
+data.test_y = data.test_y./uni_max;
+save('./data/dataREAL_normalized_uni_max','data')
 
 
 
