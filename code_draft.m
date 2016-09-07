@@ -203,5 +203,8 @@ save('./data/dataREAL_normalized_uni_max','data')
 
 
 
+h = repmat(rbm.c', opts.batchsize, 1) + v1 * rbm.W';
+
+
 
 
