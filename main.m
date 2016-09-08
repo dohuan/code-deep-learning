@@ -25,8 +25,8 @@ patientID{7} = 'P13';
 
 %load ./data/data_train
 load ./data/dataGR-augmented
-train_x = data.train_x;
-train_y = data.train_y;
+train_x = double(data.train_x);
+train_y = double(data.train_y);
 clear data
 
 
@@ -40,7 +40,7 @@ dbn.sizes = [100 100];
 opts.numepochs =   3;
 opts.batchsize = 100;
 opts.momentum  =   0;
-opts.alpha     =   1E-3;   % alpha: learn rate
+opts.alpha     =   5E-3;   % alpha: learn rate
 opts.visibleDist   = 'Gauss'; % 'Gauss' or 'binomial'
 dbn = dbnsetup(dbn, train_x, opts);
 dbn = dbntrain(dbn, train_x, opts);
@@ -65,6 +65,7 @@ nn.activation_function = 'sigm';
 % --- train NN USING GR data
 opts.numepochs =  1;
 opts.batchsize = 100;
+nn.learningRate = .03;
 nn = nntrain(nn, train_x, train_y, opts);
 
 % --- train NN USING REAL data (for better fine tuning)
@@ -72,10 +73,15 @@ nn = nntrain(nn, train_x, train_y, opts);
 load ./data/dataREAL_unnormalized
 opts.numepochs =  1;
 opts.batchsize = 1;
-nn.learningRate = .003;
+nn.learningRate = .0003;
 nn = nntrain(nn, data.ft_x, data.ft_y, opts);
 
 est = nnpredict(nn,data.test_x);
+
+figure(2)
+hold on
+plot(est(1,:))
+plot(est(2,:))
 
 figure(1)
 for i=1:size(data.test_y,1)
@@ -87,6 +93,7 @@ for i=1:size(data.test_y,1)
     legend('estimated','true')
     title(patientID{i})
 end
+
 
 
 
