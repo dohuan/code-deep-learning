@@ -3,6 +3,7 @@ clear
 clc
 set(0,'defaultfigurecolor',[1 1 1])
 %%
+addpath(genpath('./code-deep-learning/gpml'));
 tStart = tic;
 patientID{1} = 'G';
 patientID{2} = 'H';
@@ -12,22 +13,58 @@ patientID{5} = 'P11';
 patientID{6} = 'P12';
 patientID{7} = 'P13';
 
-% load ./data/dataGR-augmented;
-% fnum = 3;
-% for i=1:size(data.train_x,1)
-%     train_x(i,:) = data.train_x(i,:)./max(data.train_x(i,:));
-% end
-% for i=1:size(data.train_y,1)
-%     train_y(i,:) = data.train_y(i,:)./max(data.train_y(i,:));
-%     %train_y(i,:) = data.train_y(i,:);
-% end
-% clear data
 
-%load ./data/data_train
-load ./data/dataGR-augmented
-train_x = double(data.train_x);
-train_y = double(data.train_y);
-clear data
+fnum = 3;
+ifLoad = 1; % Run only ONCE then load saved data
+if ifLoad==0
+    load ./data/dataGR-augmented
+    scale_feature = [];
+    for i=1:size(data.train_x,1)
+        [ic,~] = sort(data.train_x(i,:),'descend');
+        scale_feature = [scale_feature; ic(fnum:-1:1)]; 
+        train_x(i,:) = data.train_x(i,:)./ic(1);
+    end
+    scale_label = [];
+    for i=1:size(data.train_y,1)
+        train_y(i,:) = data.train_y(i,:)./max(data.train_y(i,:));
+        scale_label = [scale_label; max(data.train_y(i,:))];
+    end
+    clear data
+    
+    load ./data/dataREAL_unnormalized
+    for i=1:size(data.ft_x,1)
+        [ic,~] = sort(data.ft_x(i,:),'descend');
+        scale_feature = [scale_feature; ic(fnum:-1:1)]; 
+        ft_x(i,:) = data.ft_x(i,:)./ic(1);
+    end
+    for i=1:size(data.ft_y,1)
+        ft_y(i,:) = data.ft_y(i,:)./max(data.ft_y(i,:));
+        scale_label = [scale_label; max(data.ft_y(i,:))];
+    end
+    % --- save scale in order: train-finetune
+    scaleTrackTrain = [scale_feature scale_label];
+    
+    
+    scale_feature = [];
+    scale_label = [];
+    for i=1:size(data.test_x,1)
+        [ic,~] = sort(data.test_x(i,:),'descend');
+        scale_feature = [scale_feature; ic(fnum:-1:1)]; 
+        test_x(i,:) = data.test_x(i,:)./ic(1);
+    end
+    for i=1:size(data.test_y,1)
+        test_y(i,:) = data.test_y(i,:)./max(data.test_y(i,:));
+        scale_label = [scale_label; max(data.test_y(i,:))];
+    end
+    
+    scaleTrackTest = [scale_feature scale_label];
+    
+    save('./data/data_all','train_x','train_y','scaleTrackTrain',...
+        'scaleTrackTest','ft_x','ft_y','test_x','test_y');
+else
+    load ./data/data_all
+end
+
 
 
 %%  ex1 train a 100 hidden unit RBM and visualize its weights
@@ -40,7 +77,7 @@ dbn.sizes = [100 100];
 opts.numepochs =   3;
 opts.batchsize = 100;
 opts.momentum  =   0;
-opts.alpha     =   5E-3;   % alpha: learn rate
+opts.alpha     =   1E-4;   % alpha: learn rate
 opts.visibleDist   = 'Gauss'; % 'Gauss' or 'binomial'
 dbn = dbnsetup(dbn, train_x, opts);
 dbn = dbntrain(dbn, train_x, opts);
@@ -65,30 +102,46 @@ nn.activation_function = 'sigm';
 % --- train NN USING GR data
 opts.numepochs =  1;
 opts.batchsize = 100;
-nn.learningRate = .03;
+nn.learningRate = .1;
 nn = nntrain(nn, train_x, train_y, opts);
 
-% --- train NN USING REAL data (for better fine tuning)
-%load ./data/dataREAL_normalized_uni_max
-load ./data/dataREAL_unnormalized
+% --- Use GP here to predict scale for test
+scale_test = gaussian_process(scaleTrackTrain(:,1:3),scaleTrackTrain(:,end),...
+                                            scaleTrackTest(:,1:3));
+
+
 opts.numepochs =  1;
 opts.batchsize = 1;
-nn.learningRate = .0003;
-nn = nntrain(nn, data.ft_x, data.ft_y, opts);
+nn.learningRate = .1;
+nn = nntrain(nn, ft_x, ft_y, opts);
 
-est = nnpredict(nn,data.test_x);
+est = nnpredict(nn,test_x);
 
-figure(2)
-hold on
-plot(est(1,:))
-plot(est(2,:))
+% figure(2)
+% hold on
+% plot(est(1,:))
+% plot(est(2,:))
 
 figure(1)
-for i=1:size(data.test_y,1)
+title('unscaled')
+for i=1:size(test_y,1)
     subplot(2,4,i)
     hold on
     plot(est(i,:),'LineWidth',2)
-    plot(data.test_y(i,:),'LineWidth',2)
+    plot(test_y(i,:),'LineWidth',2)
+    hold off
+    legend('estimated','true')
+    title(patientID{i})
+end
+
+
+figure(2)
+title('scaled')
+for i=1:size(test_y,1)
+    subplot(2,4,i)
+    hold on
+    plot(est(i,:).*scale_test(i),'LineWidth',2)
+    plot(test_y(i,:)*scaleTrackTest(i,end),'LineWidth',2)
     hold off
     legend('estimated','true')
     title(patientID{i})
