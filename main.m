@@ -72,7 +72,7 @@ end
 % --- 1 layer of hidden unit with size 100
 %dbn.sizes = 100;
 % --- 2 layers of hidden unit with size 100
-dbn.sizes = [100 100];
+dbn.sizes = [900 36]; % 100 100
 
 opts.numepochs =   3;
 opts.batchsize = 100;
@@ -106,11 +106,11 @@ nn.learningRate = .1;
 nn = nntrain(nn, train_x, train_y, opts);
 
 % --- Use GP here to predict scale for test
-scale_test = gaussian_process(scaleTrackTrain(:,1:3),scaleTrackTrain(:,end),...
+scale_test = gaussian_process_gpml(scaleTrackTrain(:,1:3),scaleTrackTrain(:,end),...
                                             scaleTrackTest(:,1:3));
 
 
-opts.numepochs =  1;
+opts.numepochs =  150;
 opts.batchsize = 1;
 nn.learningRate = .1;
 nn = nntrain(nn, ft_x, ft_y, opts);
@@ -147,7 +147,11 @@ for i=1:size(test_y,1)
     title(patientID{i})
 end
 
-
+figure(3)
+hold on
+for i=1:size(est,1)
+    plot(est(i,:));
+end
 
 
 
