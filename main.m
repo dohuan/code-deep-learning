@@ -17,7 +17,8 @@ patientID{7} = 'P13';
 fnum = 3;
 ifLoad = 1; % Run only ONCE then load saved data
 if ifLoad==0
-    load ./data/dataGR-augmented
+    %load ./data/dataGR-augmented
+    load ./data/dataCM-augmented
     scale_feature = [];
     for i=1:size(data.train_x,1)
         [ic,~] = sort(data.train_x(i,:),'descend');
@@ -59,7 +60,7 @@ if ifLoad==0
     
     scaleTrackTest = [scale_feature scale_label];
     
-    save('./data/data_all','train_x','train_y','scaleTrackTrain',...
+    save('./data/data_all_GR','train_x','train_y','scaleTrackTrain',...
         'scaleTrackTest','ft_x','ft_y','test_x','test_y');
 else
     load ./data/data_all
@@ -77,7 +78,7 @@ dbn.sizes = [900 36]; % 100 100
 opts.numepochs =   3;
 opts.batchsize = 100;
 opts.momentum  =   0;
-opts.alpha     =   1E-4;   % alpha: learn rate
+opts.alpha     =   50E-4;   % alpha: learn rate, use 1E-4 for GR data 
 opts.visibleDist   = 'Gauss'; % 'Gauss' or 'binomial'
 dbn = dbnsetup(dbn, train_x, opts);
 dbn = dbntrain(dbn, train_x, opts);
@@ -106,21 +107,17 @@ nn.learningRate = .1;
 nn = nntrain(nn, train_x, train_y, opts);
 
 % --- Use GP here to predict scale for test
-scale_test = gaussian_process_gpml(scaleTrackTrain(:,1:3),scaleTrackTrain(:,end),...
+[scale_test, ~] = gaussian_process_gpml(scaleTrackTrain(:,1:3),scaleTrackTrain(:,end),...
                                             scaleTrackTest(:,1:3));
 
 
-opts.numepochs =  150;
+opts.numepochs =  250;
 opts.batchsize = 1;
 nn.learningRate = .1;
 nn = nntrain(nn, ft_x, ft_y, opts);
 
 est = nnpredict(nn,test_x);
 
-% figure(2)
-% hold on
-% plot(est(1,:))
-% plot(est(2,:))
 
 figure(1)
 title('unscaled')
@@ -148,6 +145,20 @@ for i=1:size(test_y,1)
 end
 
 figure(3)
+title('scaled and smoothed')
+for i=1:size(test_y,1)
+    subplot(2,4,i)
+    hold on
+    estPlot = est(i,:).*scale_test(i);
+    estPlot = smooth(estPlot,.1,'lowess');
+    plot(estPlot,'LineWidth',2);
+    plot(test_y(i,:)*scaleTrackTest(i,end),'LineWidth',2)
+    hold off
+    legend('estimated','true')
+    title(patientID{i})
+end
+
+figure(4)
 hold on
 for i=1:size(est,1)
     plot(est(i,:));
