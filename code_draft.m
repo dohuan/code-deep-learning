@@ -206,5 +206,31 @@ save('./data/dataREAL_normalized_uni_max','data')
 h = repmat(rbm.c', opts.batchsize, 1) + v1 * rbm.W';
 
 
+% --- plot histogram of GR and CM side by side
+GR = load('./data/dataGR-augmented');
+CM = load('./data/dataCM-augmented');
+gr = GR.data.train_y;
+cm = CM.data.train_y;
+hold on
+for i=1:size(gr,2)
+	[h,x] = hist(gr(:,i));
+	[h1,x1] = hist(cm(:,i));
+	h=h./(max(h));
+	h1=h1./max(h1);
+	plot3(x,i*ones(1,length(x)),h,'b-');
+	plot3(x1,i*ones(1,length(x1)),h1,'r--');
+end
+hold off
+xlabel('Maximal diameter')
+ylabel('Spatial site')
+zlabel('Probability')
+
+
+
+
+
+
+
+
 
 

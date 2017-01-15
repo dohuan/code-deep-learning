@@ -131,38 +131,55 @@ for i=1:size(test_y,1)
     title(patientID{i})
 end
 
-
 figure(2)
-title('scaled')
-for i=1:size(test_y,1)
-    subplot(2,4,i)
-    hold on
-    plot(est(i,:).*scale_test(i),'LineWidth',2)
-    plot(test_y(i,:)*scaleTrackTest(i,end),'LineWidth',2)
-    hold off
-    legend('estimated','true')
-    title(patientID{i})
-end
-
-figure(3)
-title('scaled and smoothed')
 for i=1:size(test_y,1)
     subplot(2,4,i)
     hold on
     estPlot = est(i,:).*scale_test(i);
     estPlot = smooth(estPlot,.1,'lowess');
-    plot(estPlot,'LineWidth',2);
-    plot(test_y(i,:)*scaleTrackTest(i,end),'LineWidth',2)
+    plot(est(i,:).*scale_test(i),'g-.','LineWidth',2)
+    plot(test_y(i,:)*scaleTrackTest(i,end),'r:','LineWidth',2)
+    plot(estPlot,'b-','LineWidth',2);
     hold off
-    legend('estimated','true')
+    legend('prediction','true','smoothed prediction')
     title(patientID{i})
+    box on
+    axis tight
 end
+
+
+% figure(2)
+% title('scaled')
+% for i=1:size(test_y,1)
+%     subplot(2,4,i)
+%     hold on
+%     plot(est(i,:).*scale_test(i),'LineWidth',2)
+%     plot(test_y(i,:)*scaleTrackTest(i,end),'LineWidth',2)
+%     hold off
+%     legend('estimated','true')
+%     title(patientID{i})
+% end
+% 
+% figure(3)
+% title('scaled and smoothed')
+% for i=1:size(test_y,1)
+%     subplot(2,4,i)
+%     hold on
+%     estPlot = est(i,:).*scale_test(i);
+%     estPlot = smooth(estPlot,.1,'lowess');
+%     plot(estPlot,'LineWidth',2);
+%     plot(test_y(i,:)*scaleTrackTest(i,end),'LineWidth',2)
+%     hold off
+%     legend('estimated','true')
+%     title(patientID{i})
+% end
 
 figure(4)
 hold on
 for i=1:size(est,1)
     plot(est(i,:));
 end
+
 
 
 
