@@ -4,7 +4,7 @@ clc
 set(0,'defaultfigurecolor',[1 1 1])
 addpath(genpath('./Utility'))
 %%
-tic
+\
 load ./data/param_ksigmu
 
 range.k = [0.196 0.287];
