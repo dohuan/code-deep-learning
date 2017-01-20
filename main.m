@@ -63,17 +63,17 @@ if ifLoad==0
     save('./data/data_all_GR','train_x','train_y','scaleTrackTrain',...
         'scaleTrackTest','ft_x','ft_y','test_x','test_y');
 else
-    load ./data/data_all
+    load ./data/data_all_GR
 end
 
 
 
 %%  ex1 train a 100 hidden unit RBM and visualize its weights
-
+DBNtime = tic;
 % --- 1 layer of hidden unit with size 100
 %dbn.sizes = 100;
 % --- 2 layers of hidden unit with size 100
-dbn.sizes = [900 36]; % 100 100
+dbn.sizes = [100 100]; % 100 100 | 900 36 (published)
 
 opts.numepochs =   3;
 opts.batchsize = 100;
@@ -106,18 +106,27 @@ opts.batchsize = 100;
 nn.learningRate = .1;
 nn = nntrain(nn, train_x, train_y, opts);
 
-% --- Use GP here to predict scale for test
-[scale_test, ~] = gaussian_process_gpml(scaleTrackTrain(:,1:3),scaleTrackTrain(:,end),...
-                                            scaleTrackTest(:,1:3));
-
 
 opts.numepochs =  250;
 opts.batchsize = 1;
 nn.learningRate = .1;
 nn = nntrain(nn, ft_x, ft_y, opts);
 
+DBNtimerun = toc(DBNtime);
+fprintf('\nDBN training time: %.2f seconds\n',DBNtimerun);
+
 est = nnpredict(nn,test_x);
 
+% --- Use GP here to predict scale for test
+[scale_test, ~] = gaussian_process_gpml(scaleTrackTrain(:,1:3),scaleTrackTrain(:,end),...
+                                            scaleTrackTest(:,1:3));
+err = [];
+for i=1:size(test_y,1)
+    estUnscaled = est(i,:).*scale_test(i);
+    err = [err;rmseCal(estUnscaled,test_y(i,:)*scaleTrackTest(i,end))];
+end                                
+
+fprintf('RMSE: %.2f\n',mean(err));
 
 figure(1)
 title('unscaled')
