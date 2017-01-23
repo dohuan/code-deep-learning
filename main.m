@@ -5,13 +5,13 @@ set(0,'defaultfigurecolor',[1 1 1])
 %%
 addpath(genpath('./code-deep-learning/gpml'));
 tStart = tic;
-patientID{1} = 'G';
-patientID{2} = 'H';
-patientID{3} = 'J';
-patientID{4} = 'K';
-patientID{5} = 'P11';
-patientID{6} = 'P12';
-patientID{7} = 'P13';
+patientID{1} = 'P1'; %G
+patientID{2} = 'P2'; %H
+patientID{3} = 'P3'; %J
+patientID{4} = 'P4'; %K
+patientID{5} = 'P5'; %P11
+patientID{6} = 'P6'; %P12
+patientID{7} = 'P7'; %P13
 
 
 fnum = 3;
@@ -73,7 +73,7 @@ DBNtime = tic;
 % --- 1 layer of hidden unit with size 100
 %dbn.sizes = 100;
 % --- 2 layers of hidden unit with size 100
-dbn.sizes = [100 100]; % 100 100 | 900 36 (published)
+dbn.sizes = [400 100]; % 100 100 | 900 36 | 400 100(published)
 
 opts.numepochs =   3;
 opts.batchsize = 100;
@@ -106,8 +106,8 @@ opts.batchsize = 100;
 nn.learningRate = .1;
 nn = nntrain(nn, train_x, train_y, opts);
 
-
-opts.numepochs =  250;
+% --- train NN USING REAL data
+opts.numepochs =  260;  % 250 (published)
 opts.batchsize = 1;
 nn.learningRate = .1;
 nn = nntrain(nn, ft_x, ft_y, opts);
@@ -155,33 +155,6 @@ for i=1:size(test_y,1)
     box on
     axis tight
 end
-
-
-% figure(2)
-% title('scaled')
-% for i=1:size(test_y,1)
-%     subplot(2,4,i)
-%     hold on
-%     plot(est(i,:).*scale_test(i),'LineWidth',2)
-%     plot(test_y(i,:)*scaleTrackTest(i,end),'LineWidth',2)
-%     hold off
-%     legend('estimated','true')
-%     title(patientID{i})
-% end
-% 
-% figure(3)
-% title('scaled and smoothed')
-% for i=1:size(test_y,1)
-%     subplot(2,4,i)
-%     hold on
-%     estPlot = est(i,:).*scale_test(i);
-%     estPlot = smooth(estPlot,.1,'lowess');
-%     plot(estPlot,'LineWidth',2);
-%     plot(test_y(i,:)*scaleTrackTest(i,end),'LineWidth',2)
-%     hold off
-%     legend('estimated','true')
-%     title(patientID{i})
-% end
 
 figure(4)
 hold on

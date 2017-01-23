@@ -227,10 +227,56 @@ zlabel('Probability')
 
 
 
+% --- plot epoch
+epoch = [1 10 100 150 200 250 300 500 700 900];
+RMSE = [7.63 6.24 4.83 5.07 4.81 5.03 5.07 4.68 4.69 4.75];
+ttime = [29.99 29.58 34.58 36.38 38.24 41.20 42.92 51.38 64.23 69.44];
+[Ax,h1,h2] = plotyy(epoch,RMSE,epoch,ttime,'plot');
+h1.LineStyle = '-';
+h2.LineStyle = '--';
+h1.LineWidth = 2;
+h2.LineWidth = 2;
+ylabel(Ax(1),'RMSE');
+ylabel(Ax(2),'Training time (seconds)');
+xlabel('Number of epochs');
+set(gca,'FontSize',16);
 
+% --- Compare proposed method with linear mixed-effects
+ME = load('mvgress_try');
+DL = load('results012217');
+true = DL.test_y;
+estME = ME.est_y;
+estDL = DL.est;
+scaleDL = DL.scale_test;
 
+patientID{1} = 'P1'; %G
+patientID{2} = 'P2'; %H
+patientID{3} = 'P3'; %J
+patientID{4} = 'P4'; %K
+patientID{5} = 'P5'; %P11
+patientID{6} = 'P6'; %P12
+patientID{7} = 'P7'; %P13
 
+for i=1:7
+	fprintf('RMSE of patient %s: %.2f (DL) %.2f (ME)\n',patientID{i},rmseCal(estDL(i,:).*scaleDL(i),true(i,:)),rmseCal(estME(i,:),true(i,:)));
+end
 
-
+figure(2)
+for i=1:size(true,1)
+    subplot(2,4,i)
+    hold on
+    estPlot = estDL(i,:).*scaleDL(i);
+    %estPlot = smooth(estPlot,.1,'lowess');
+    %plot(est(i,:).*scale_test(i),'g-.','LineWidth',2)
+    plot(true(i,:)*DL.scaleTrackTest(i,end),'k-','LineWidth',2)
+    plot(estPlot,'b--','LineWidth',2);
+	plot(estME(i,:),'r-.','LineWidth',2)
+    hold off
+    legend('true','DL prediction','ME prediction')
+    title(patientID{i})
+    box on
+    axis tight
+end
+%set(gca,'FontSize',16);
 
 
