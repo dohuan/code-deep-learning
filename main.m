@@ -73,7 +73,7 @@ DBNtime = tic;
 % --- 1 layer of hidden unit with size 100
 %dbn.sizes = 100;
 % --- 2 layers of hidden unit with size 100
-dbn.sizes = [400 100]; % 100 100 | 900 36 | 400 100(published)
+dbn.sizes = [900 400 400]; % 100 100 | 900 36 | 400 100(published)
 
 opts.numepochs =   3;
 opts.batchsize = 100;
@@ -107,7 +107,7 @@ nn.learningRate = .1;
 nn = nntrain(nn, train_x, train_y, opts);
 
 % --- train NN USING REAL data
-opts.numepochs =  260;  % 250 (published)
+opts.numepochs =  600;  % 250 (published)
 opts.batchsize = 1;
 nn.learningRate = .1;
 nn = nntrain(nn, ft_x, ft_y, opts);
@@ -121,12 +121,28 @@ est = nnpredict(nn,test_x);
 [scale_test, ~] = gaussian_process_gpml(scaleTrackTrain(:,1:3),scaleTrackTrain(:,end),...
                                             scaleTrackTest(:,1:3));
 err = [];
+%MEerr = [0.86 0.54 0.18 0.37 0.32 0.47 0.77]; % order 0 2 3 
+%MEerr = [0.77 0.44 0.38 0.7 0.9 0.4 0.91]; % order 0 3 4
+MEerr = [2.69 0.56 1.61 2.08 2.02 0.81 1.99]; % order 1 3 4
+
+% for i=1:size(test_y,1)
+%     estUnscaled = est(i,:).*scale_test(i);
+%     err = [err;rmseCal(estUnscaled,test_y(i,:)*scaleTrackTest(i,end))];
+% end                                
 for i=1:size(test_y,1)
-    estUnscaled = est(i,:).*scale_test(i);
-    err = [err;rmseCal(estUnscaled,test_y(i,:)*scaleTrackTest(i,end))];
-end                                
+    %estUnscaled = est(i,:).*scale_test(i);
+    %err = [err;rmseCal(est(i,:),test_y(i,:))];
+    err = rmseCal(est(i,:),test_y(i,:));
+    if (err<MEerr(i))
+        flag = 'YES';
+    else
+       flag = 'NO'; 
+    end
+    fprintf('RMSE of patient %s %.2f %.2f %s\n',patientID{i},err,MEerr(i),flag);
+end  
 
 fprintf('RMSE: %.2f\n',mean(err));
+
 
 figure(1)
 title('unscaled')

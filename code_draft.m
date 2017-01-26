@@ -243,7 +243,7 @@ set(gca,'FontSize',16);
 
 % --- Compare proposed method with linear mixed-effects
 ME = load('mvgress_try');
-DL = load('results012217');
+DL = load('results012417_published');
 true = DL.test_y;
 estME = ME.est_y;
 estDL = DL.est;
@@ -257,13 +257,19 @@ patientID{5} = 'P5'; %P11
 patientID{6} = 'P6'; %P12
 patientID{7} = 'P7'; %P13
 
+
 for i=1:7
-	fprintf('RMSE of patient %s: %.2f (DL) %.2f (ME)\n',patientID{i},rmseCal(estDL(i,:).*scaleDL(i),true(i,:)),rmseCal(estME(i,:),true(i,:)));
+	fprintf('RMSE of patient %s: %.2f (DL) %.2f (ME)\n',patientID{i},rmseCal(estDL(i,:).*scaleDL(i),true(i,:).*DL.scaleTrackTest(i,end)),rmseCal(estME(i,:),true(i,:).*DL.scaleTrackTest(i,end)));
 end
 
+for i=1:7
+	fprintf('RMSE of patient %s (normalized): %.2f (DL) %.2f (ME)\n',patientID{i},rmseCal(estDL(i,:),true(i,:)),rmseCal(estME(i,:)./max(estME(i,:)),true(i,:)));
+end
+
+count = 1;
 figure(2)
-for i=1:size(true,1)
-    subplot(2,4,i)
+for i=[1 2 3 5 7]
+    subplot(2,3,count)
     hold on
     estPlot = estDL(i,:).*scaleDL(i);
     %estPlot = smooth(estPlot,.1,'lowess');
@@ -273,9 +279,10 @@ for i=1:size(true,1)
 	plot(estME(i,:),'r-.','LineWidth',2)
     hold off
     legend('true','DL prediction','ME prediction')
-    title(patientID{i})
+    title(['P' num2str(count)])
     box on
     axis tight
+	count = count + 1;
 end
 %set(gca,'FontSize',16);
 
