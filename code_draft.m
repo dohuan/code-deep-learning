@@ -243,7 +243,7 @@ set(gca,'FontSize',16);
 
 % --- Compare proposed method with linear mixed-effects
 ME = load('mvgress_try');
-DL = load('results012417_published');
+DL = load('results020117');
 true = DL.test_y;
 estME = ME.est_y;
 estDL = DL.est;
@@ -268,7 +268,7 @@ end
 
 count = 1;
 figure(2)
-for i=[1 2 3 5 7]
+for i=[1 2 3 5 6 7]
     subplot(2,3,count)
     hold on
     estPlot = estDL(i,:).*scaleDL(i);
@@ -287,3 +287,20 @@ end
 %set(gca,'FontSize',16);
 
 
+
+
+
+
+% ----
+h= rawdata(ix1,:);
+h1 = (curve_shifter(h',.7))';
+h2 = curve_merger(h,rawdata(ix2,:),1,ratio);
+hold on
+plot(h,'b','LineWidth',2);
+plot(h1,'r--','LineWidth',2);
+plot(h2,'k:','LineWidth',2);
+box on
+axis tight
+xlabel('centerline (spatial site unit)');
+ylabel('maximal diameter (cm)');
+set(gca,'FontSize',16);

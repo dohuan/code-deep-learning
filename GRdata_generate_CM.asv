@@ -4,7 +4,7 @@ clc
 set(0,'defaultfigurecolor',[1 1 1])
 addpath(genpath('./Utility'))
 %%
-tic
+
 load ./data/param_ksigmu
 
 range.k = [0.196 0.287];
@@ -52,43 +52,43 @@ data.train_y = [];
 fnum = 3; % take [fnum] scans in the past as features, predict the scan [fnum+1]-th
 t_offset = 12*(fnum+1); % t_offset = 12(months)*(fnum+1)(scans)*30(days)/30(days)
 t_step = 12;
-for i=1:size(y,1)
-    rawdata = (reshape(y(i,:),221,[]))';
-    ran_ix = randi([1,size(rawdata,1)-t_offset],100,1);
-    for j=1:length(ran_ix)
-        tmp_x = [];
-        stoken = (rand()>.7); % shift token
-        for k=1:fnum+1
-            ix = ran_ix(j)+t_step*(k-1);
-            if (stoken ==1 )
-                data_tmp = (curve_shifter(single(rawdata(ix,:)'), .7))';
-            else
-                data_tmp = single(rawdata(ix,:));
-            end
-            if k~=fnum+1
-                tmp_x = [tmp_x, data_tmp];
-            else
-                
-                tmp_y = data_tmp;
-            end
-        end
-        data.train_x = [data.train_x;tmp_x];
-        data.train_y = [data.train_y; tmp_y];
-    end
-end
+% for i=1:size(y,1)
+%     rawdata = (reshape(y(i,:),221,[]))';
+%     ran_ix = randi([1,size(rawdata,1)-t_offset],100,1);
+%     for j=1:length(ran_ix)
+%         tmp_x = [];
+%         stoken = (rand()>.7); % shift token
+%         for k=1:fnum+1
+%             ix = ran_ix(j)+t_step*(k-1);
+%             if (stoken ==1 )
+%                 data_tmp = (curve_shifter(single(rawdata(ix,:)'), .7))';
+%             else
+%                 data_tmp = single(rawdata(ix,:));
+%             end
+%             if k~=fnum+1
+%                 tmp_x = [tmp_x, data_tmp];
+%             else
+%                 
+%                 tmp_y = data_tmp;
+%             end
+%         end
+%         data.train_x = [data.train_x;tmp_x];
+%         data.train_y = [data.train_y; tmp_y];
+%     end
+% end
 
 % --- create data with 2-peak AAA
-for i=1:4:size(y,1)
+for i=1:size(y,1)
     rawdata = (reshape(y(i,:),221,[]))';
-    ran_ix1 = randi([1,size(rawdata,1)-t_offset],1,1);
-    ran_ix2 = randi([1,size(rawdata,1)-t_offset],1,1);
+    ran_ix1 = randi([1,size(rawdata,1)-t_offset],39,1);
+    ran_ix2 = randi([1,size(rawdata,1)-t_offset],39,1);
     for j=1:length(ran_ix1)
         tmp_x = [];
         %stoken = (rand()>.7); % shift token
         for k=1:fnum+1
             ix1 = ran_ix1(j)+t_step*(k-1);
             ix2 = ran_ix2(j)+t_step*(k-1);
-            ratio = .05+(.1-.05).*rand();
+            ratio = .2+(1-.2).*rand();
             
             data_tmp = curve_merger(rawdata(ix1,:),rawdata(ix2,:),1,ratio);
             data_tmp = single(data_tmp);
@@ -102,13 +102,12 @@ for i=1:4:size(y,1)
         data.train_x = [data.train_x;tmp_x];
         data.train_y = [data.train_y; tmp_y];
     end
-    
 end
 
 % --- mix all data together
 mixix = randperm(size(data.train_x,1));
 data.train_x = data.train_x(mixix,:);
-data.train_y = data.train_y(mixix,:);
+
 
 data.fnum = fnum;
 save('./data/dataCM-augmented','data');

@@ -19,6 +19,10 @@ ifLoad = 1; % Run only ONCE then load saved data
 if ifLoad==0
     %load ./data/dataGR-augmented
     load ./data/dataCM-augmented
+    % --- trim data a little bit to diviable to 100
+    data.train_x(1:28,:) = [];
+    data.train_y(1:28,:) = [];
+    
     scale_feature = [];
     for i=1:size(data.train_x,1)
         [ic,~] = sort(data.train_x(i,:),'descend');
@@ -73,7 +77,7 @@ DBNtime = tic;
 % --- 1 layer of hidden unit with size 100
 %dbn.sizes = 100;
 % --- 2 layers of hidden unit with size 100
-dbn.sizes = [900 400 400]; % 100 100 | 900 36 | 400 100(published)
+dbn.sizes = [900 400 400]; % 100 100 | 900 36 | 900 400 400(published)
 
 opts.numepochs =   3;
 opts.batchsize = 100;
@@ -107,7 +111,7 @@ nn.learningRate = .1;
 nn = nntrain(nn, train_x, train_y, opts);
 
 % --- train NN USING REAL data
-opts.numepochs =  600;  % 250 (published)
+opts.numepochs =  600;  % 600 (published)
 opts.batchsize = 1;
 nn.learningRate = .1;
 nn = nntrain(nn, ft_x, ft_y, opts);
