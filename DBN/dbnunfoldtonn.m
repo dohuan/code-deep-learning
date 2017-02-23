@@ -29,7 +29,7 @@ function nn = nnsetup(architecture)
     nn.nonSparsityPenalty               = 0;            %  Non sparsity penalty
     nn.sparsityTarget                   = 0.05;         %  Sparsity target
     nn.inputZeroMaskedFraction          = 0;            %  Used for Denoising AutoEncoders
-    nn.dropoutFraction                  = 0;            %  Dropout level (http://www.cs.toronto.edu/~hinton/absps/dropout.pdf)
+    nn.dropoutFraction                  = .05;            %  Dropout level (http://www.cs.toronto.edu/~hinton/absps/dropout.pdf)
     nn.testing                          = 0;            %  Internal variable. nntest sets this to one.
     nn.output                           = 'sigm';       %  output unit 'sigm' (=logistic), 'softmax' and 'linear'
 

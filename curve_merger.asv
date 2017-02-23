@@ -1,7 +1,0 @@
-function out = curve_merger(curve1,curve2,shift_distance,ratio1,ratio2)
-if (length(curve1)~=length(curve2))
-    error('Lengths of the two curves are not the same.\n');
-end
-curve_tmp = curve_shifter(curve2, .6);
-
-end

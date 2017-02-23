@@ -88,6 +88,7 @@ dataout.test_y = [];
 fnum = 3; % take [fnum] scans in the past as features, predict the scan [fnum+1]-th
 % NOTE: make sure fnum is the SAME as GR data
 dataout.fnum = fnum;
+count = 1;
 for i = 1:length(fileList)
 	loadFile = ['./data/real_scans/' fileList(i).name];
 	load(loadFile);
@@ -128,6 +129,65 @@ for i = 1:length(fileList)
 end
 clear data
 data = dataout;
+
+
+% --- Load and NORMALIZED REAL data for CROSS VALIDATION
+fileList = dir('./data/real_scans/*.mat');
+fnum = 3; % take [fnum] scans in the past as features, predict the scan [fnum+1]-th
+% NOTE: make sure fnum is the SAME as GR data
+count = 1;
+for i = 1:length(fileList)
+	loadFile = ['./data/real_scans/' fileList(i).name];
+	load(loadFile);
+	if (length(data)<fnum+1)
+		fprintf('Discarded: insufficient data\n');
+	else
+		
+		dataout(count).ft_x   = []; % ft = 'fine tune'
+		dataout(count).ft_y   = [];
+		dataout(count).test_x = [];
+		dataout(count).test_y = [];
+		dataout(count).fnum = fnum;
+		
+		grp_num = (length(data)-(fnum+1)+1);
+		fprintf('Possible data size: %d\n',grp_num);
+		grp_ix = 1:length(data);
+		grp_ix = grp_ix';
+		for j=1:grp_num
+			ix_tmp = circshift(grp_ix,-j+1);
+			data_grp = data(ix_tmp(1:fnum+1));
+			tmp_x = [];
+			for k=1:length(data_grp)
+				p = polyfit(data_grp(k).pos, data_grp(k).maxd,7);
+				x = linspace(min(data_grp(k).pos), max(data_grp(k).pos), 221);
+				tmp = polyval(p,x);
+				if (k~=length(data_grp))
+					tmp_x = [tmp_x, tmp];
+				else
+					tmp_y = tmp;
+				end
+				
+			end
+			% --- Un-comment following two lines if normalized
+			%tmp_x = tmp_x./max(tmp_x);
+			%tmp_y = tmp_y./max(tmp_y);
+			if(j~=grp_num)
+				dataout(count).ft_x = [dataout(count).ft_x; tmp_x];
+				dataout(count).ft_y = [dataout(count).ft_y; tmp_y];
+			else
+				dataout(count).test_x = [dataout(count).test_x; tmp_x];
+				dataout(count).test_y = [dataout(count).test_y; tmp_y];
+			end
+		end
+		count = count + 1;
+	end
+end
+clear data
+data = dataout;
+
+
+
+
 
 
 A = 1:10;
@@ -241,9 +301,14 @@ ylabel(Ax(2),'Training time (seconds)');
 xlabel('Number of epochs');
 set(gca,'FontSize',16);
 
+
+
+
+
 % --- Compare proposed method with linear mixed-effects
 ME = load('mvgress_try');
-DL = load('results020117');
+%DL = load('results020117');
+DL = load('results_dropout');
 true = DL.test_y;
 estME = ME.est_y;
 estDL = DL.est;
@@ -288,6 +353,58 @@ end
 
 
 
+% --- Compare proposed method (DROPOUT and NONDROPOUT) with linear mixed-effects
+ME = load('mvgress_try');
+DL = load('results020117_published');
+DO = load('results_dropout');
+true = DL.test_y;
+estME = ME.est_y;
+estDL = DL.est;
+scaleDL = DL.scale_test;
+estDO = DO.est;
+scaleDO = DO.scale_test;
+
+
+patientID{1} = 'P1'; %G
+patientID{2} = 'P2'; %H
+patientID{3} = 'P3'; %J
+patientID{4} = 'P4'; %K
+patientID{5} = 'P5'; %P11
+patientID{6} = 'P6'; %P12
+patientID{7} = 'P7'; %P13
+
+
+for i=1:7
+	fprintf('RMSE of patient %s: %.2f (DL) %.2f (DO) %.2f (ME)\n',patientID{i},rmseCal(estDL(i,:).*scaleDL(i),true(i,:).*DL.scaleTrackTest(i,end)),rmseCal(estDO(i,:).*scaleDO(i),true(i,:).*DL.scaleTrackTest(i,end)),rmseCal(estME(i,:),true(i,:).*DL.scaleTrackTest(i,end)));
+end
+
+for i=1:7
+	fprintf('RMSE of patient %s (normalized): %.2f (DL) %.2f (DO) %.2f (ME)\n',patientID{i},rmseCal(estDL(i,:),true(i,:)),rmseCal(estDO(i,:),true(i,:)),rmseCal(estME(i,:)./max(estME(i,:)),true(i,:)));
+end
+
+count = 1;
+figure(2)
+for i=[1 2 3 5 6 7]
+    subplot(2,3,count)
+    hold on
+    estPlot = estDL(i,:).*scaleDL(i);
+	estPlotDO = estDO(i,:).*scaleDO(i);
+    %estPlot = smooth(estPlot,.1,'lowess');
+    %plot(est(i,:).*scale_test(i),'g-.','LineWidth',2)
+    plot(true(i,:)*DL.scaleTrackTest(i,end),'k-','LineWidth',2)
+    plot(estPlot,'b--','LineWidth',2);
+	plot(estPlotDO,'c:','LineWidth',2);
+	plot(estME(i,:),'r-.','LineWidth',2)
+    hold off
+    legend('true','DL prediction','DO prediction','ME prediction')
+    title(['P' num2str(count)])
+    box on
+    axis tight
+	count = count + 1;
+end
+%set(gca,'FontSize',16);
+
+
 
 
 
@@ -304,3 +421,126 @@ axis tight
 xlabel('centerline (spatial site unit)');
 ylabel('maximal diameter (cm)');
 set(gca,'FontSize',16);
+
+
+
+
+% --- plot the weights
+load results020117_published
+
+figure(1)
+subplot(2,1,1)
+title('RBM (pre-trained)')
+hold on
+for i=1:size(dbn.rbm{1}.W,1)
+plot(dbn.rbm{1}.W(i,:));
+end
+hold off
+box on
+axis tight
+ylabel('weights')
+xlabel('layer 1 units')
+subplot(2,1,2)
+title('NN (fine-tuned)')
+hold on
+for i=1:size(nn.W{1},1)
+plot(nn.W{1}(i,:));
+end
+ylabel('weights')
+xlabel('layer 1 units')
+hold off
+box on
+axis tight
+
+figure(2)
+subplot(2,1,1)
+title('RBM (pre-trained)')
+hold on
+for i=1:size(dbn.rbm{2}.W,1)
+plot(dbn.rbm{2}.W(i,:));
+end
+hold off
+box on
+axis tight
+ylabel('weights')
+xlabel('layer 2 units')
+subplot(2,1,2)
+title('NN (fine-tuned)')
+hold on
+for i=1:size(nn.W{2},1)
+plot(nn.W{2}(i,:));
+end
+ylabel('weights')
+xlabel('layer 2 units')
+hold off
+box on
+axis tight
+
+figure(3)
+subplot(2,1,1)
+title('RBM (pre-trained)')
+hold on
+for i=1:size(dbn.rbm{3}.W,1)
+plot(dbn.rbm{3}.W(i,:));
+end
+hold off
+box on
+axis tight
+ylabel('weights')
+xlabel('layer 3 units')
+subplot(2,1,2)
+title('NN (fine-tuned)')
+hold on
+for i=1:size(nn.W{3},1)
+plot(nn.W{3}(i,:));
+end
+ylabel('weights')
+xlabel('layer 3 units')
+hold off
+box on
+axis tight
+
+
+
+
+% -----------
+
+subplot(1,4,[1 2 3])
+title('Training data')
+plot(data.train_x(1,:),'LineWidth',2)
+axis tight
+ylabel('Maximum diameter (cm)')
+ylim([2.0 2.8])
+set(gca,'FontSize',16)
+subplot(1,4,4)
+title('Testing data')
+plot(data.train_y(1,:),'LineWidth',2)
+axis tight
+ylabel('Maximum diameter (cm)')
+set(gca,'FontSize',16)
+
+
+% --- plot results for CV
+load ./results_CV
+patientID{1} = 'P1'; %G
+patientID{2} = 'P2'; %H
+patientID{3} = 'P3'; %J
+patientID{4} = 'P4'; %K
+patientID{5} = 'P5'; %P11
+patientID{6} = 'P6'; %P12
+patientID{7} = 'P7'; %P13
+
+count = 1;
+figure(1)
+for i=[1 2 3 5 6 7]
+    subplot(2,3,count)
+    hold on
+    plot(mdc_est(i,:),'b--','LineWidth',2)
+    plot(mdc_true(i,:),'r','LineWidth',2);
+    hold off
+    legend('Predicted','true')
+    title(['P' num2str(count)])
+    box on
+    axis tight
+	count = count + 1;
+end
